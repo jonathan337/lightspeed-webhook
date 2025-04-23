@@ -90,6 +90,28 @@ app.post('/webhook', async (req, res) => {
     }
 });
 
-app.listen(config.PORT, () => {
+const server = app.listen(config.PORT, () => {
     console.log(`Server running on port ${config.PORT}`);
+});
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received. Closing HTTP server...');
+    server.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT signal received. Closing HTTP server...');
+    server.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
+    });
+});
+
+// Add unhandled rejection handler
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 }); 
