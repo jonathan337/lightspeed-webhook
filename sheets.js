@@ -16,12 +16,14 @@ class SheetsManager {
             console.log('Auth successful, loading sheet info...');
             await this.doc.loadInfo();
             
-            this.sheet = this.doc.sheetsByIndex[1];
-            console.log('Sheet loaded successfully:', this.sheet.title);
+            // Instead of accessing a single sheet, we'll store all sheets
+            this.sheets = this.doc.sheetsByIndex;
+            console.log(`Loaded ${this.sheets.length} sheets successfully`);
             
-            if (this.sheet.title !== 'Lightspeed API Test Sync') {
-                console.error('Warning: Sheet title does not match expected name');
-            }
+            // Log all sheet titles for debugging
+            this.sheets.forEach((sheet, index) => {
+                console.log(`Sheet ${index + 1}: ${sheet.title}`);
+            });
         } catch (error) {
             console.error('Error initializing sheets:', error);
             if (error.message.includes('private_key')) {
@@ -43,46 +45,51 @@ class SheetsManager {
             });
 
             await this.init();
-            const rows = await this.sheet.getRows();
-            console.log('Total rows in sheet:', rows.length);
-            console.log('First row headers:', Object.keys(rows[0])); // Debug line to see column headers
             
-            // Find the row with matching SKU
-            const rowIndex = rows.findIndex(row => {
-                const sheetSku = row['SKU']?.toString().trim();
-                const searchSku = sku?.toString().trim();
-                console.log('Comparing SKUs:', { sheetSku, searchSku });
-                return sheetSku === searchSku;
-            });
+            // Try to update the SKU in all sheets
+            let updatedAny = false;
             
-            console.log('Found row index:', rowIndex);
-            
-            if (rowIndex !== -1) {
-                console.log('Updating row:', rowIndex + 2);
+            for (const sheet of this.sheets) {
+                const rows = await sheet.getRows();
+                console.log(`Checking sheet "${sheet.title}" with ${rows.length} rows`);
                 
-                // Only update fields that are provided (not null)
-                if (productName) rows[rowIndex]['Name'] = productName;
-                if (productId) rows[rowIndex]['Product ID'] = productId;
-                if (inventory !== null) rows[rowIndex]['Inventory'] = inventory;
-                if (price !== null) rows[rowIndex]['Price'] = price;
-                rows[rowIndex]['Status'] = status || 'Updated via Webhook';
-                
-                // Format date as MM/DD/YYYY hh:mm AM/PM
-                const now = new Date();
-                const formattedDate = now.toLocaleDateString('en-US', {
-                    month: '2-digit',
-                    day: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
+                // Find the row with matching SKU
+                const rowIndex = rows.findIndex(row => {
+                    const sheetSku = row['SKU']?.toString().trim();
+                    const searchSku = sku?.toString().trim();
+                    return sheetSku === searchSku;
                 });
-                rows[rowIndex]['Last Updated'] = formattedDate;
                 
-                await rows[rowIndex].save();
-                console.log('Row updated successfully');
-            } else {
-                console.log('No matching SKU found:', sku);
+                if (rowIndex !== -1) {
+                    console.log(`Found SKU in sheet "${sheet.title}" at row:`, rowIndex + 2);
+                    
+                    // Only update fields that are provided (not null)
+                    if (productName) rows[rowIndex]['Name'] = productName;
+                    if (productId) rows[rowIndex]['Product ID'] = productId;
+                    if (inventory !== null) rows[rowIndex]['Inventory'] = inventory;
+                    if (price !== null) rows[rowIndex]['Price'] = price;
+                    rows[rowIndex]['Status'] = status || 'Updated via Webhook';
+                    
+                    // Format date as MM/DD/YYYY hh:mm AM/PM
+                    const now = new Date();
+                    const formattedDate = now.toLocaleDateString('en-US', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                    rows[rowIndex]['Last Updated'] = formattedDate;
+                    
+                    await rows[rowIndex].save();
+                    console.log(`Row updated successfully in sheet "${sheet.title}"`);
+                    updatedAny = true;
+                }
+            }
+            
+            if (!updatedAny) {
+                console.log('No matching SKU found in any sheet:', sku);
             }
         } catch (error) {
             console.error('Error in updateInventory:', error);
