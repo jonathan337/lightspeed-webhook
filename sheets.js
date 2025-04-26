@@ -50,6 +50,12 @@ class SheetsManager {
             let updatedAny = false;
             
             for (const sheet of this.sheets) {
+                // Skip sheets with no header row
+                if (!sheet.headerValues || sheet.headerValues.length === 0) {
+                    console.warn(`Skipping sheet "${sheet.title}" because it has no header row.`);
+                    continue;
+                }
+
                 const rows = await sheet.getRows();
                 console.log(`Checking sheet "${sheet.title}" with ${rows.length} rows`);
                 
