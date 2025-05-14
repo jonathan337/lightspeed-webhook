@@ -16,7 +16,6 @@ class SheetsManager {
             console.log('Auth successful, loading sheet info...');
             await this.doc.loadInfo();
             
-            // Instead of accessing a single sheet, we'll store all sheets
             this.sheets = this.doc.sheetsByIndex;
             console.log(`Loaded ${this.sheets.length} sheets successfully`);
             
@@ -50,47 +49,62 @@ class SheetsManager {
             let updatedAny = false;
             
             for (const sheet of this.sheets) {
-                // Skip sheets with no header row
-                if (!sheet.headerValues || sheet.headerValues.length === 0) {
-                    console.warn(`Skipping sheet "${sheet.title}" because it has no header row.`);
-                    continue;
-                }
-
-                const rows = await sheet.getRows();
-                console.log(`Checking sheet "${sheet.title}" with ${rows.length} rows`);
-                
-                // Find the row with matching SKU
-                const rowIndex = rows.findIndex(row => {
-                    const sheetSku = row['SKU']?.toString().trim();
-                    const searchSku = sku?.toString().trim();
-                    return sheetSku === searchSku;
-                });
-                
-                if (rowIndex !== -1) {
-                    console.log(`Found SKU in sheet "${sheet.title}" at row:`, rowIndex + 2);
+                try {
+                    // Try to get rows - this will fail if the sheet truly has no headers
+                    const rows = await sheet.getRows()
+                        .catch(err => {
+                            if (err.message.includes('No values in the header row')) {
+                                console.log(`Skipping sheet "${sheet.title}" because it has no header row.`);
+                                return null;
+                            }
+                            throw err; // re-throw any other errors
+                        });
                     
-                    // Only update fields that are provided (not null)
-                    if (productName) rows[rowIndex]['Name'] = productName;
-                    if (productId) rows[rowIndex]['Product ID'] = productId;
-                    if (inventory !== null) rows[rowIndex]['Inventory'] = inventory;
-                    if (price !== null) rows[rowIndex]['Price'] = price;
-                    rows[rowIndex]['Status'] = status || 'Updated via Webhook';
+                    // Skip if we couldn't get rows
+                    if (!rows) continue;
                     
-                    // Format date as MM/DD/YYYY hh:mm AM/PM
-                    const now = new Date();
-                    const formattedDate = now.toLocaleDateString('en-US', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
+                    console.log(`Checking sheet "${sheet.title}" with ${rows.length} rows`);
+                    
+                    // Find the row with matching SKU
+                    const rowIndex = rows.findIndex(row => {
+                        // Make sure the row has an SKU property
+                        if (!row['SKU']) return false;
+                        
+                        const sheetSku = row['SKU'].toString().trim();
+                        const searchSku = sku?.toString().trim();
+                        return sheetSku === searchSku;
                     });
-                    rows[rowIndex]['Last Updated'] = formattedDate;
                     
-                    await rows[rowIndex].save();
-                    console.log(`Row updated successfully in sheet "${sheet.title}"`);
-                    updatedAny = true;
+                    if (rowIndex !== -1) {
+                        console.log(`Found SKU in sheet "${sheet.title}" at row:`, rowIndex + 2);
+                        
+                        // Only update fields that are provided (not null)
+                        if (productName) rows[rowIndex]['Name'] = productName;
+                        if (productId) rows[rowIndex]['Product ID'] = productId;
+                        if (inventory !== null) rows[rowIndex]['Inventory'] = inventory;
+                        if (price !== null) rows[rowIndex]['Price'] = price;
+                        rows[rowIndex]['Status'] = status || 'Updated via Webhook';
+                        
+                        // Format date as MM/DD/YYYY hh:mm AM/PM
+                        const now = new Date();
+                        const formattedDate = now.toLocaleDateString('en-US', {
+                            month: '2-digit',
+                            day: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        rows[rowIndex]['Last Updated'] = formattedDate;
+                        
+                        await rows[rowIndex].save();
+                        console.log(`Row updated successfully in sheet "${sheet.title}"`);
+                        updatedAny = true;
+                    }
+                } catch (error) {
+                    // Log the error but continue with other sheets
+                    console.error(`Error processing sheet "${sheet.title}":`, error.message);
+                    continue;
                 }
             }
             
