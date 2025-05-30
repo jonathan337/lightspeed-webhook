@@ -1,32 +1,80 @@
-// Simple function to test scheduled updates
+// Function to test Google Sheets connection
+const { GoogleSpreadsheet } = require('google-spreadsheet');
+
 exports.handler = async function(event, context) {
   try {
     console.log('Starting scheduled update function');
     
-    // Check if the environment variables exist but don't try to use them yet
-    const hasSpreadsheetId = !!process.env.GOOGLE_SPREADSHEET_ID;
-    const hasClientEmail = !!process.env.GOOGLE_CLIENT_EMAIL;
-    const hasPrivateKey = !!process.env.GOOGLE_PRIVATE_KEY;
+    // Check environment variables
+    const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID;
+    const CLIENT_EMAIL = process.env.GOOGLE_CLIENT_EMAIL;
+    const PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY;
     
-    // Return a response with environment status
-    return {
-      statusCode: 200,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({ 
-        message: 'Scheduled update function is working',
-        timestamp: new Date().toISOString(),
-        environment: {
-          hasSpreadsheetId,
-          hasClientEmail,
-          hasPrivateKey
-        }
-      })
-    };
+    if (!SPREADSHEET_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
+      return {
+        statusCode: 200,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          message: 'Environment variables missing',
+          environment: {
+            hasSpreadsheetId: !!SPREADSHEET_ID,
+            hasClientEmail: !!CLIENT_EMAIL,
+            hasPrivateKey: !!PRIVATE_KEY
+          }
+        })
+      };
+    }
+
+    // Try to connect to Google Sheets
+    console.log('Attempting to connect to Google Sheets...');
+    
+    try {
+      const doc = new GoogleSpreadsheet(SPREADSHEET_ID);
+      
+      await doc.useServiceAccountAuth({
+        client_email: CLIENT_EMAIL,
+        private_key: PRIVATE_KEY.replace(/\\n/g, '\n'),
+      });
+      
+      await doc.loadInfo();
+      
+      console.log(`Connected to: ${doc.title}`);
+      
+      return {
+        statusCode: 200,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          message: 'Successfully connected to Google Sheets',
+          timestamp: new Date().toISOString(),
+          spreadsheet: {
+            title: doc.title,
+            sheetCount: doc.sheetCount
+          }
+        })
+      };
+    } catch (sheetsError) {
+      console.error('Google Sheets error:', sheetsError);
+      return {
+        statusCode: 200,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          message: 'Google Sheets connection failed',
+          error: sheetsError.message,
+          timestamp: new Date().toISOString()
+        })
+      };
+    }
   } catch (error) {
-    console.error('Error in scheduled update:', error);
+    console.error('Function error:', error);
     
     return {
       statusCode: 500,
