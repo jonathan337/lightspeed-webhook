@@ -49,6 +49,7 @@
     <h2>Test Webhook Functions</h2>
     <button id="testManualUpdate">Test Manual Update</button>
     <button id="testScheduledUpdate">Test Scheduled Update</button>
+    <button id="testHourlyUpdate">Test Hourly Update</button>
     
     <h3>Response:</h3>
     <div id="response">Results will appear here</div>
@@ -99,6 +100,21 @@
       
       try {
         const data = await callEndpoint('/scheduled-update');
+        if (typeof data === 'object') {
+          responseDiv.textContent = JSON.stringify(data, null, 2);
+        } else {
+          responseDiv.textContent = data;
+        }
+      } catch (error) {
+        responseDiv.textContent = `Error: ${error.message}`;
+      }
+    });
+
+    document.getElementById('testHourlyUpdate').addEventListener('click', async () => {
+      const responseDiv = document.getElementById('response');
+      
+      try {
+        const data = await callEndpoint('/hourly-update');
         if (typeof data === 'object') {
           responseDiv.textContent = JSON.stringify(data, null, 2);
         } else {
