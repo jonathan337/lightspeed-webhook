@@ -72,7 +72,8 @@
   </div>
   
   <div>
-    <h2>Test Webhook Functions</h2>
+    <h2>Test Functions</h2>
+    <button id="testSimple">Test Simple Function</button>
     <button id="testManualUpdate">Test Manual Update</button>
     <button id="testScheduledUpdate">Test Scheduled Update</button>
     <button id="testHourlyUpdate">Test Hourly Update</button>
@@ -105,6 +106,17 @@
         throw error;
       }
     }
+
+    document.getElementById('testSimple').addEventListener('click', async () => {
+      const responseDiv = document.getElementById('response');
+      
+      try {
+        const data = await callEndpoint('/test');
+        responseDiv.textContent = data;
+      } catch (error) {
+        responseDiv.textContent = `Error: ${error.message}`;
+      }
+    });
 
     document.getElementById('testManualUpdate').addEventListener('click', async () => {
       const responseDiv = document.getElementById('response');

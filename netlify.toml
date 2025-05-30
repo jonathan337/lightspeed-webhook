@@ -31,4 +31,9 @@
 [[redirects]]
   from = "/hourly-update"
   to = "/.netlify/functions/hourly-update"
+  status = 200
+
+[[redirects]]
+  from = "/test"
+  to = "/.netlify/functions/test"
   status = 200 
