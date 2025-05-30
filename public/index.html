@@ -55,14 +55,40 @@
   </div>
 
   <script>
-    document.getElementById('testManualUpdate').addEventListener('click', async () => {
+    // Helper function to handle API calls
+    async function callEndpoint(url) {
       const responseDiv = document.getElementById('response');
       responseDiv.textContent = 'Loading...';
       
       try {
-        const response = await fetch('/manual-update');
-        const data = await response.json();
-        responseDiv.textContent = JSON.stringify(data, null, 2);
+        const response = await fetch(url);
+        
+        // Check if the response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await response.json();
+          return data;
+        } else {
+          // If not JSON, get text response
+          const text = await response.text();
+          return text;
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+        throw error;
+      }
+    }
+
+    document.getElementById('testManualUpdate').addEventListener('click', async () => {
+      const responseDiv = document.getElementById('response');
+      
+      try {
+        const data = await callEndpoint('/manual-update');
+        if (typeof data === 'object') {
+          responseDiv.textContent = JSON.stringify(data, null, 2);
+        } else {
+          responseDiv.textContent = data;
+        }
       } catch (error) {
         responseDiv.textContent = `Error: ${error.message}`;
       }
@@ -70,12 +96,14 @@
     
     document.getElementById('testScheduledUpdate').addEventListener('click', async () => {
       const responseDiv = document.getElementById('response');
-      responseDiv.textContent = 'Loading...';
       
       try {
-        const response = await fetch('/scheduled-update');
-        const data = await response.json();
-        responseDiv.textContent = JSON.stringify(data, null, 2);
+        const data = await callEndpoint('/scheduled-update');
+        if (typeof data === 'object') {
+          responseDiv.textContent = JSON.stringify(data, null, 2);
+        } else {
+          responseDiv.textContent = data;
+        }
       } catch (error) {
         responseDiv.textContent = `Error: ${error.message}`;
       }
