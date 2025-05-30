@@ -29,24 +29,58 @@ exports.handler = async function(event, context) {
     // Log that we're going to connect to Google Sheets
     console.log('Connecting to Google Sheets...');
     
-    // For now, just return a successful response
-    // In the next iteration, we'll actually connect to Google Sheets
-    return {
-      statusCode: 200,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({ 
-        message: 'Scheduled update function is working',
-        timestamp: new Date().toISOString(),
-        config: {
-          spreadsheetId: SPREADSHEET_ID ? SPREADSHEET_ID.substring(0, 5) + '...' : 'Not configured',
-          clientEmail: CLIENT_EMAIL ? CLIENT_EMAIL.substring(0, 5) + '...' : 'Not configured',
-          privateKey: PRIVATE_KEY ? 'Configured (hidden)' : 'Not configured'
-        }
-      })
-    };
+    try {
+      // Initialize the Google Spreadsheet
+      const doc = new GoogleSpreadsheet(SPREADSHEET_ID);
+      
+      // Authenticate with the Google Sheets API
+      await doc.useServiceAccountAuth({
+        client_email: CLIENT_EMAIL,
+        private_key: PRIVATE_KEY.replace(/\\n/g, '\n'),
+      });
+      
+      // Load the document properties and worksheets
+      await doc.loadInfo();
+      
+      console.log(`Successfully connected to sheet: ${doc.title}`);
+      console.log(`Total sheets: ${doc.sheetCount}`);
+      
+      // Get information about all sheets
+      const sheetInfo = doc.sheetsByIndex.map((sheet, index) => ({
+        index,
+        title: sheet.title,
+        rowCount: sheet.rowCount,
+        columnCount: sheet.columnCount
+      }));
+      
+      return {
+        statusCode: 200,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ 
+          message: 'Successfully connected to Google Sheets',
+          timestamp: new Date().toISOString(),
+          spreadsheetTitle: doc.title,
+          sheetCount: doc.sheetCount,
+          sheets: sheetInfo
+        })
+      };
+    } catch (sheetError) {
+      console.error('Error connecting to Google Sheets:', sheetError);
+      return {
+        statusCode: 500,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          error: 'Google Sheets error',
+          message: sheetError.message
+        })
+      };
+    }
   } catch (error) {
     console.error('Error in scheduled update:', error);
     
