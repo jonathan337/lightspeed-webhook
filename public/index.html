@@ -13,10 +13,12 @@
       max-width: 800px;
       margin: 0 auto;
     }
-    h1 {
+    h1, h2, h3 {
       color: #333;
-      border-bottom: 1px solid #ddd;
       padding-bottom: 10px;
+    }
+    h1 {
+      border-bottom: 1px solid #ddd;
     }
     button {
       background-color: #4CAF50;
@@ -31,6 +33,19 @@
       cursor: pointer;
       border-radius: 4px;
     }
+    .info-box {
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    code {
+      background-color: #f1f1f1;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
     #response {
       margin-top: 20px;
       padding: 10px;
@@ -44,6 +59,17 @@
 </head>
 <body>
   <h1>Lightspeed Webhook Tester</h1>
+  
+  <div class="info-box">
+    <h3>Setup Instructions</h3>
+    <p>Before the scheduled updates will work, you need to set these environment variables in Netlify:</p>
+    <ul>
+      <li><code>GOOGLE_SPREADSHEET_ID</code> - Your Google Sheet ID</li>
+      <li><code>GOOGLE_CLIENT_EMAIL</code> - Service account email</li>
+      <li><code>GOOGLE_PRIVATE_KEY</code> - Service account private key</li>
+    </ul>
+    <p>You can set these in the Netlify dashboard under: <strong>Site settings &gt; Environment variables</strong></p>
+  </div>
   
   <div>
     <h2>Test Webhook Functions</h2>
