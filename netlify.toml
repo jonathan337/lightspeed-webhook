@@ -6,6 +6,10 @@
   node_bundler = "esbuild"
 
 # Scheduled function to run every hour
+[functions.scheduled-update]
+  schedule = "@hourly"
+
+# Alternative hourly function (for testing)
 [functions.hourly-update]
   schedule = "@hourly"
 

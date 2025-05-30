@@ -1,10 +1,12 @@
-// Simple function that returns a success message to verify Netlify functions are working
+// Function to run hourly updates from Google Sheets
+const { GoogleSpreadsheet } = require('google-spreadsheet');
+
+// This handler will be scheduled to run every hour
 exports.handler = async function(event, context) {
   try {
-    console.log('Scheduled update function called');
-    console.log('HTTP Method:', event.httpMethod);
-    
-    // Return a simple response
+    console.log('Starting scheduled update function');
+
+    // Return a successful response for testing
     return {
       statusCode: 200,
       headers: { 
@@ -13,11 +15,12 @@ exports.handler = async function(event, context) {
       },
       body: JSON.stringify({ 
         message: 'Scheduled update function is working',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        info: 'This function will be enhanced to fetch data from Google Sheets'
       })
     };
   } catch (error) {
-    console.error('Error in scheduled update function:', error);
+    console.error('Error in scheduled update:', error);
     
     return {
       statusCode: 500,
