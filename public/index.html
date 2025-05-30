@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lightspeed Webhook Tester</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #response {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-height: 100px;
+      background-color: #f9f9f9;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Lightspeed Webhook Tester</h1>
+  
+  <div>
+    <h2>Test Webhook Functions</h2>
+    <button id="testManualUpdate">Test Manual Update</button>
+    <button id="testScheduledUpdate">Test Scheduled Update</button>
+    
+    <h3>Response:</h3>
+    <div id="response">Results will appear here</div>
+  </div>
+
+  <script>
+    document.getElementById('testManualUpdate').addEventListener('click', async () => {
+      const responseDiv = document.getElementById('response');
+      responseDiv.textContent = 'Loading...';
+      
+      try {
+        const response = await fetch('/manual-update');
+        const data = await response.json();
+        responseDiv.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        responseDiv.textContent = `Error: ${error.message}`;
+      }
+    });
+    
+    document.getElementById('testScheduledUpdate').addEventListener('click', async () => {
+      const responseDiv = document.getElementById('response');
+      responseDiv.textContent = 'Loading...';
+      
+      try {
+        const response = await fetch('/scheduled-update');
+        const data = await response.json();
+        responseDiv.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        responseDiv.textContent = `Error: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html> 

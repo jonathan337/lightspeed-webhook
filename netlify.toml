@@ -1,5 +1,6 @@
 [build]
   functions = "functions"
+  publish = "public"
 
 [functions]
   node_bundler = "esbuild"
@@ -15,5 +16,10 @@
 
 [[redirects]]
   from = "/manual-update"
+  to = "/.netlify/functions/manual-update"
+  status = 200
+
+[[redirects]]
+  from = "/scheduled-update"
   to = "/.netlify/functions/scheduled-update"
   status = 200 
