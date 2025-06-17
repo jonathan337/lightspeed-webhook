@@ -5,13 +5,11 @@
 [functions]
   node_bundler = "esbuild"
 
-# Scheduled function to run every hour
-[functions.scheduled-update]
-  schedule = "@hourly"
+# Scheduled function to run daily at midnight
+[functions.daily-update]
+  schedule = "@daily"
 
-# Alternative hourly function (for testing)
-[functions.hourly-update]
-  schedule = "@hourly"
+
 
 [[redirects]]
   from = "/webhook"
@@ -24,14 +22,11 @@
   status = 200
 
 [[redirects]]
-  from = "/scheduled-update"
-  to = "/.netlify/functions/scheduled-update"
+  from = "/daily-update"
+  to = "/.netlify/functions/daily-update"
   status = 200
 
-[[redirects]]
-  from = "/hourly-update"
-  to = "/.netlify/functions/hourly-update"
-  status = 200
+
 
 [[redirects]]
   from = "/test"
