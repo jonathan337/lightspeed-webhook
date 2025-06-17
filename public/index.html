@@ -62,7 +62,7 @@
   
   <div class="info-box">
     <h3>Setup Instructions</h3>
-    <p>Before the scheduled updates will work, you need to set these environment variables in Netlify:</p>
+    <p>Before the daily updates will work, you need to set these environment variables in Netlify:</p>
     <ul>
       <li><code>GOOGLE_SPREADSHEET_ID</code> - Your Google Sheet ID</li>
       <li><code>GOOGLE_CLIENT_EMAIL</code> - Service account email</li>
@@ -75,8 +75,7 @@
     <h2>Test Functions</h2>
     <button id="testSimple">Test Simple Function</button>
     <button id="testManualUpdate">Test Manual Update</button>
-    <button id="testScheduledUpdate">Test Scheduled Update</button>
-    <button id="testHourlyUpdate">Test Hourly Update</button>
+    <button id="testDailyUpdate">Test Daily Update</button>
     
     <h3>Response:</h3>
     <div id="response">Results will appear here</div>
@@ -133,26 +132,11 @@
       }
     });
     
-    document.getElementById('testScheduledUpdate').addEventListener('click', async () => {
+    document.getElementById('testDailyUpdate').addEventListener('click', async () => {
       const responseDiv = document.getElementById('response');
       
       try {
-        const data = await callEndpoint('/scheduled-update');
-        if (typeof data === 'object') {
-          responseDiv.textContent = JSON.stringify(data, null, 2);
-        } else {
-          responseDiv.textContent = data;
-        }
-      } catch (error) {
-        responseDiv.textContent = `Error: ${error.message}`;
-      }
-    });
-
-    document.getElementById('testHourlyUpdate').addEventListener('click', async () => {
-      const responseDiv = document.getElementById('response');
-      
-      try {
-        const data = await callEndpoint('/hourly-update');
+        const data = await callEndpoint('/daily-update');
         if (typeof data === 'object') {
           responseDiv.textContent = JSON.stringify(data, null, 2);
         } else {
