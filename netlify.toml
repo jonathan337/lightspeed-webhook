@@ -5,9 +5,9 @@
 [functions]
   node_bundler = "esbuild"
 
-# Scheduled function to run daily at midnight
-[functions.daily-update]
-  schedule = "@daily"
+# Daily update function (can be scheduled later)
+# [functions.daily-update]
+#   schedule = "@daily"
 
 
 
